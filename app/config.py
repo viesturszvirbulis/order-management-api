@@ -1,6 +1,3 @@
-# The app has a settings card. On my laptop 
-# it says 'use the small notebook'; on the server it says 'use the big filing cabinet'. 
-# The code is identical; only the card changes
 from functools import lru_cache
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
