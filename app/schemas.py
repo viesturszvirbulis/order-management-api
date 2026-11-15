@@ -49,8 +49,12 @@ class OrderRead(BaseModel):
     @field_validator("created_at") # added for UTC timezone handling, otherwise tests catch a timezone inconsistency issue with SQLite and API response
     @classmethod
     def ensure_utc(cls, value: datetime) -> datetime:
-        # SQLite drops timezone info; we always store UTC, so re-attach it.
-        return value if value.tzinfo is not None else value.replace(tzinfo=UTC)
+    # SQLite drops the timezone, Postgres returns the server's local timezone.
+    # We always store UTC, so normalise every timestamp to UTC.
+        if value.tzinfo is None:
+            return value.replace(tzinfo=UTC) # SQLite case
+        return value.astimezone(UTC) # Postgres case
+
     
 
 

@@ -1,3 +1,4 @@
+import os
 from collections.abc import Iterator
 from typing import Any
 
@@ -10,17 +11,23 @@ from sqlalchemy.pool import StaticPool
 from app.database import Base, get_db
 from app.main import app
 
+TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL")
 
 @pytest.fixture
 def engine() -> Iterator[Engine]:
-    """A brand-new in-memory database for every test."""
-    engine = create_engine(
-        "sqlite://",
-        connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
-    )
+    """A clean database for every test: Postgres if TEST_DATABASE_URL is set, else in-memory SQLite."""
+    if TEST_DATABASE_URL:
+        engine = create_engine(TEST_DATABASE_URL)
+    else:
+        engine = create_engine(
+            "sqlite://",
+            connect_args={"check_same_thread": False},
+            poolclass=StaticPool,
+        )
+    Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
     yield engine
+    Base.metadata.drop_all(engine)
     engine.dispose()
 
 

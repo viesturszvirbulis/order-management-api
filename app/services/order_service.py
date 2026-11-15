@@ -93,8 +93,8 @@ def update_order_status(db: Session, order_id: int, new_status: OrderStatus) -> 
 
     order.status = new_status
     try:
-        db.commit()
-    except StaleDataError:
+        db.commit() # UPDATE orders SET status =..., version =2 WHERE id =1 AND version =1
+    except StaleDataError: # 0 rows matched: someone else saved first
         db.rollback()
         raise ConcurrentUpdateError(order_id) from None
     return order
