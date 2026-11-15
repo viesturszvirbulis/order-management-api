@@ -32,6 +32,10 @@ class Order(Base):
     )
     total_amount: Mapped[Decimal] = mapped_column(Numeric(12, 2))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    idempotency_key: Mapped[str | None] = mapped_column(String(255), unique=True)
+    version: Mapped[int] = mapped_column(default=1)
+
+    __mapper_args__ = {"version_id_col": version}
 
     items: Mapped[list["OrderItem"]] = relationship(
         back_populates="order",
