@@ -1,8 +1,8 @@
-from datetime import datetime
+from datetime import UTC, datetime
 from decimal import Decimal
 from typing import Annotated
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 from app.models import OrderStatus
 
@@ -46,6 +46,12 @@ class OrderRead(BaseModel):
     total_amount: Decimal
     created_at: datetime
     items: list[OrderItemRead]
+    @field_validator("created_at") # added for UTC timezone handling, otherwise tests catch a timezone inconsistency issue with SQLite and API response
+    @classmethod
+    def ensure_utc(cls, value: datetime) -> datetime:
+        # SQLite drops timezone info; we always store UTC, so re-attach it.
+        return value if value.tzinfo is not None else value.replace(tzinfo=UTC)
+    
 
 
 class OrderList(BaseModel):
